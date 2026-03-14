@@ -1,11 +1,15 @@
 <script lang="ts">
   import { fetch } from '@tauri-apps/api/http';
-  import { selectedModel, systemPrompt } from '$lib/stores';
+  import { selectedModel, fullSystemPrompt, loadMemory } from '$lib/stores';
+  import { writeTextFile, BaseDirectory } from '@tauri-apps/api/fs';
+  import { homeDir } from '@tauri-apps/api/path';
+  import * as Tooltip from '$lib/components/ui/tooltip';
+  import Save from 'lucide-svelte/icons/save';
   import * as Card from '$lib/components/ui/card';
   import Input from '$lib/components/ui/input/input.svelte';
   import Button from '$lib/components/ui/button/button.svelte';
 
-  let messages: { user: string; text: string }[] = [
+  let messages: { user: string; text: string; memory?: boolean }[] = [
     { user: 'assistant', text: 'Hello! How can I help you today?' },
   ];
   let newMessage = '';
@@ -23,7 +27,7 @@
         method: 'POST',
         body: JSON.stringify({
           model: $selectedModel,
-          messages: [{ role: 'system', content: $systemPrompt }, ...messages.slice(0, -1).map(m => ({ role: m.user, content: m.text }))],
+          messages: [{ role: 'system', content: $fullSystemPrompt }, ...messages.slice(0, -1).map(m => ({ role: m.user, content: m.text }))],
           stream: true,
         }),
       });
@@ -46,11 +50,7 @@
         for (const jsonChunk of jsonChunks) {
           try {
             const parsed = JSON.parse(jsonChunk);
-            if (parsed.message && parsed.message.content) {
-              assistantResponse += parsed.message.content;
-              messages[messages.length - 1].text = assistantResponse;
-              messages = messages;
-            }
+            if (parsed.message && parsed.message.content) {\n              assistantResponse += parsed.message.content;\n              messages[messages.length - 1].text = assistantResponse;\n              messages = messages;\n\n              const memoryMatch = assistantResponse.match(/\\\[WRITE_TO_MEMORY: \"(.*?)\"\\]/);\n              if (memoryMatch) {\n                const newMemory = memoryMatch[1];\n                const home = await homeDir();\n                const memoryPath = `${home}Documents/idk just yet/Existance/Memory.md`;\n                await writeTextFile(memoryPath, `\\n- ${newMemory}`, { append: true });\n                loadMemory();\n                messages[messages.length - 1].memory = true;\n              }\n            }
           } catch (e) {
             console.error('Failed to parse JSON chunk', jsonChunk);
           }
@@ -72,6 +72,16 @@
         <Card.Root class="max-w-xs md:max-w-md lg:max-w-lg xl:max-w-xl {message.user === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}">
           <Card.Content class="p-4">
             <p>{message.text}</p>
+            {#if message.memory}
+              <Tooltip.Root>
+                <Tooltip.Trigger class="mt-2">
+                  <Save class="h-4 w-4 text-muted-foreground" />
+                </Tooltip.Trigger>
+                <Tooltip.Content>
+                  <p>Memory saved</p>
+                </Tooltip.Content>
+              </Tooltip.Root>
+            {/if}
           </Card.Content>
         </Card.Root>
       </div>

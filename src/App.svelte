@@ -4,7 +4,7 @@
   import SystemPrompt from './lib/SystemPrompt.svelte';
   import ModelManager from './lib/ModelManager.svelte';
   import { onMount } from 'svelte';
-  import { loadModels } from './lib/stores';
+  import { loadModels, loadMemory } from './lib/stores';
   import Button from '$lib/components/ui/button/button.svelte';
   import ModeToggle from '$lib/ModeToggle.svelte';
 
@@ -14,6 +14,7 @@
 
   onMount(() => {
     loadModels();
+    loadMemory();
   });
 </script>
 

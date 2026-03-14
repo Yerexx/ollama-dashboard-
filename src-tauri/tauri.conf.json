@@ -21,6 +21,18 @@
     ],
     "security": {
       "csp": null
+    },
+    "allowlist": {
+      "fs": {
+        "all": true,
+        "scope": ["$HOME/Documents/idk just yet/Existance/Memory.md"]
+      },
+      "path": {
+        "all": true
+      },
+      "http": {
+        "all": true
+      }
     }
   },
   "bundle": {
