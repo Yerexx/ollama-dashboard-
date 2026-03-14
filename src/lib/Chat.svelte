@@ -1,6 +1,9 @@
 <script lang="ts">
   import { fetch } from '@tauri-apps/api/http';
-  import { selectedModel, systemPrompt } from './stores';
+  import { selectedModel, systemPrompt } from '$lib/stores';
+  import * as Card from '$lib/components/ui/card';
+  import Input from '$lib/components/ui/input/input.svelte';
+  import Button from '$lib/components/ui/button/button.svelte';
 
   let messages: { user: string; text: string }[] = [
     { user: 'assistant', text: 'Hello! How can I help you today?' },
@@ -38,7 +41,6 @@
         done = readerDone;
         const chunk = decoder.decode(value, { stream: true });
         
-        // Ollama streams NDJSON, so we need to parse each line
         const jsonChunks = chunk.split('\n').filter(c => c);
 
         for (const jsonChunk of jsonChunks) {
@@ -63,66 +65,22 @@
   }
 </script>
 
-<div class="chat-window">
-  <div class="messages">
+<div class="flex flex-col h-full">
+  <div class="flex-1 overflow-y-auto p-4 space-y-4">
     {#each messages as message}
-      <div class="message" class:user={message.user === 'user'} class:assistant={message.user === 'assistant'}>
-        <p>{message.text}</p>
+      <div class="flex" class:justify-end={message.user === 'user'}>
+        <Card.Root class="max-w-xs md:max-w-md lg:max-w-lg xl:max-w-xl {message.user === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}">
+          <Card.Content class="p-4">
+            <p>{message.text}</p>
+          </Card.Content>
+        </Card.Root>
       </div>
     {/each}
   </div>
-  <div class="input-area">
-    <input type="text" bind:value={newMessage} on:keydown={(e) => e.key === 'Enter' && sendMessage()} placeholder="Type your message..." />
-    <button on:click={sendMessage}>Send</button>
+  <div class="p-4 border-t">
+    <form on:submit|preventDefault={sendMessage} class="flex space-x-2">
+      <Input type="text" bind:value={newMessage} placeholder="Type your message..." class="flex-1" />
+      <Button type="submit">Send</Button>
+    </form>
   </div>
 </div>
-
-<style>
-  .chat-window {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    background-color: #f0f0f0;
-  }
-  .messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 1rem;
-  }
-  .message {
-    margin-bottom: 0.5rem;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    max-width: 80%;
-  }
-  .user {
-    background-color: #007bff;
-    color: white;
-    align-self: flex-end;
-    margin-left: auto;
-  }
-  .assistant {
-    background-color: #e9e9eb;
-    align-self: flex-start;
-  }
-  .input-area {
-    display: flex;
-    padding: 1rem;
-    border-top: 1px solid #ccc;
-  }
-  input {
-    flex: 1;
-    padding: 0.5rem;
-    border: 1px solid #ccc;
-    border-radius: 0.5rem;
-  }
-  button {
-    margin-left: 1rem;
-    padding: 0.5rem 1rem;
-    border: none;
-    background-color: #007bff;
-    color: white;
-    border-radius: 0.5rem;
-    cursor: pointer;
-  }
-</style>

@@ -1,7 +1,10 @@
 <script lang="ts">
-  import { models, loadModels } from './stores';
-  import { deleteModel, downloadModel } from './ollama';
+  import { models, loadModels } from '$lib/stores';
+  import { deleteModel, downloadModel } from '$lib/ollama';
   import { onMount } from 'svelte';
+  import * as Table from '$lib/components/ui/table';
+  import Button from '$lib/components/ui/button/button.svelte';
+  import Input from '$lib/components/ui/input/input.svelte';
 
   let downloadModelName = '';
   let downloadProgress: { status: string; total: number; completed: number } | null = null;
@@ -40,20 +43,20 @@
   }
 </script>
 
-<div class="model-manager">
-  <h1>Model Management</h1>
+<div class="p-4">
+  <h1 class="text-2xl font-bold mb-4">Model Management</h1>
 
-  <div class="download-model">
-    <h2>Download a new model</h2>
-    <form on:submit|preventDefault={handleDownload}>
-      <input type="text" bind:value={downloadModelName} placeholder="e.g. llama2:7b" />
-      <button type="submit">Download</button>
+  <div class="mb-8">
+    <h2 class="text-xl font-semibold mb-2">Download a new model</h2>
+    <form on:submit|preventDefault={handleDownload} class="flex space-x-2">
+      <Input type="text" bind:value={downloadModelName} placeholder="e.g. llama2:7b" class="flex-1" />
+      <Button type="submit">Download</Button>
     </form>
     {#if downloadProgress}
-      <div class="progress-container">
+      <div class="mt-4">
         <p>{downloadProgress.status}</p>
         {#if downloadProgress.total > 0}
-          <progress value={downloadProgress.completed} max={downloadProgress.total}></progress>
+          <progress value={downloadProgress.completed} max={downloadProgress.total} class="w-full"></progress>
           <span>
             {formatSize(downloadProgress.completed)} / {formatSize(downloadProgress.total)}
           </span>
@@ -62,76 +65,29 @@
     {/if}
   </div>
 
-  <div class="downloaded-models">
-    <h2>Downloaded models</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Size</th>
-          <th>Modified</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
+  <div>
+    <h2 class="text-xl font-semibold mb-2">Downloaded models</h2>
+    <Table.Root>
+      <Table.Header>
+        <Table.Row>
+          <Table.Head>Name</Table.Head>
+          <Table.Head>Size</Table.Head>
+          <Table.Head>Modified</Table.Head>
+          <Table.Head>Actions</Table.Head>
+        </Table.Row>
+      </Table.Header>
+      <Table.Body>
         {#each $models as model}
-          <tr>
-            <td>{model.name}</td>
-            <td>{formatSize(model.size)}</td>
-            <td>{formatDate(model.modified_at)}</td>
-            <td>
-              <button class="delete-btn" on:click={() => handleDelete(model.name)}>Delete</button>
-            </td>
-          </tr>
+          <Table.Row>
+            <Table.Cell>{model.name}</Table.Cell>
+            <Table.Cell>{formatSize(model.size)}</Table.Cell>
+            <Table.Cell>{formatDate(model.modified_at)}</Table.Cell>
+            <Table.Cell>
+              <Button variant="destructive" on:click={() => handleDelete(model.name)}>Delete</Button>
+            </Table.Cell>
+          </Table.Row>
         {/each}
-      </tbody>
-    </table>
+      </Table.Body>
+    </Table.Root>
   </div>
 </div>
-
-<style>
-  .model-manager {
-    padding: 2rem;
-  }
-  h1, h2 {
-    color: #333;
-  }
-  .download-model, .downloaded-models {
-    margin-top: 2rem;
-  }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 1rem;
-  }
-  th, td {
-    padding: 0.75rem;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-  }
-  th {
-    background-color: #f2f2f2;
-  }
-  .delete-btn {
-    background-color: #ff4d4d;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 0.25rem;
-    cursor: pointer;
-  }
-  form {
-    display: flex;
-    gap: 1rem;
-  }
-  input[type="text"] {
-    flex-grow: 1;
-    padding: 0.5rem;
-  }
-  .progress-container {
-    margin-top: 1rem;
-  }
-  progress {
-    width: 100%;
-  }
-</style>

@@ -1,21 +1,8 @@
 <script lang="ts">
-  import { systemPrompt } from './stores';
+  import { systemPrompt } from '$lib/stores';
+  import Textarea from '$lib/components/ui/textarea/textarea.svelte';
 </script>
 
-<div class="system-prompt">
-  <textarea bind:value={$systemPrompt} placeholder="Enter a system prompt..."></textarea>
+<div class="p-4 border-b">
+  <Textarea bind:value={$systemPrompt} placeholder="Enter a system prompt..." />
 </div>
-
-<style>
-  .system-prompt {
-    padding: 1rem;
-    border-bottom: 1px solid #ccc;
-  }
-  textarea {
-    width: 100%;
-    padding: 0.5rem;
-    border: 1px solid #ccc;
-    border-radius: 0.5rem;
-    min-height: 100px;
-  }
-</style>
