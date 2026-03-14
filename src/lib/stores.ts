@@ -3,6 +3,7 @@ import { getModels, type Model } from './ollama';
 
 export const models = writable<Model[]>([]);
 export const selectedModel = writable<string>('');
+export const systemPrompt = writable<string>('You are a helpful AI assistant.');
 
 export async function loadModels() {
   const fetchedModels = await getModels();

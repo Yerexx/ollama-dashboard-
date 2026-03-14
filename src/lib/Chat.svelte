@@ -1,6 +1,6 @@
 <script lang="ts">
   import { fetch } from '@tauri-apps/api/http';
-  import { selectedModel } from './stores';
+  import { selectedModel, systemPrompt } from './stores';
 
   let messages: { user: string; text: string }[] = [
     { user: 'assistant', text: 'Hello! How can I help you today?' },
@@ -20,7 +20,7 @@
         method: 'POST',
         body: JSON.stringify({
           model: $selectedModel,
-          messages: messages.slice(0, -1).map(m => ({ role: m.user, content: m.text })),
+          messages: [{ role: 'system', content: $systemPrompt }, ...messages.slice(0, -1).map(m => ({ role: m.user, content: m.text }))],
           stream: true,
         }),
       });
